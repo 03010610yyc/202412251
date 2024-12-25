@@ -1,18 +1,358 @@
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>反詐騙知識大考驗</title>
+    <style>
+        body {
+            font-family: '微軟正黑體', sans-serif;
+            background-color: #f0f8ff;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+        .quiz-container {
+            background-color: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            max-width: 800px;
+            width: 90%;
+        }
+        .question {
+            font-size: 1.2em;
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #e9ecef;
+            border-radius: 10px;
+        }
+        .options {
+            display: grid;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .option {
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .option:hover {
+            background-color: #f8f9fa;
+            transform: translateX(10px);
+        }
+        .selected {
+            background-color: #007bff;
+            color: white;
+            border-color: #0056b3;
+        }
+        .correct {
+            background-color: #28a745;
+            color: white;
+            border-color: #1e7e34;
+        }
+        .incorrect {
+            background-color: #dc3545;
+            color: white;
+            border-color: #bd2130;
+        }
+        .progress {
+            height: 20px;
+            background-color: #e9ecef;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+        .progress-bar {
+            height: 100%;
+            background-color: #007bff;
+            transition: width 0.3s ease;
+        }
+        .score {
+            font-size: 1.2em;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .feedback {
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 8px;
+            display: none;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            width: 100%;
+            margin-top: 20px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="quiz-container">
+        <h1>反詐騙知識大考驗</h1>
+        <div class="progress">
+            <div class="progress-bar" id="progress"></div>
+        </div>
+        <div class="score">得分: <span id="score">0</span></div>
+        <div class="question" id="question"></div>
+        <div class="options" id="options"></div>
+        <div class="feedback" id="feedback"></div>
+        <button onclick="nextQuestion()" id="next-btn">下一題</button>
+    </div>
 
-    <title>Sketch</title>
+    <script>
+        const questions = [
+            {
+                question: "接到自稱是銀行客服的電話，說你的帳戶有異常交易，要如何處理？",
+                options: [
+                    "立即依照對方指示操作",
+                    "提供帳戶密碼給對方查證",
+                    "掛斷電話，親自撥打銀行官方電話確認",
+                    "在電話中告知個人資料"
+                ],
+                correct: 2,
+                explanation: "永遠不要相信主動打來的電話！請直接掛斷，並親自撥打銀行官方電話確認。"
+            },
+            {
+                question: "如何辨識釣魚網站？",
+                options: [
+                    "看網址是否與官方網站完全相同",
+                    "只要有 HTTPS 就是安全的",
+                    "網站介面看起來很專業就可以",
+                    "有優惠價格就是真的"
+                ],
+                correct: 0,
+                explanation: "檢查網址是最重要的！要確認網址是否與官方完全相同，不要被相似的網址騙了。"
+            },
+            {
+                question: "收到簡訊通知中獎要如何處理？",
+                options: [
+                    "點擊簡訊中的連結",
+                    "提供銀行帳號領獎",
+                    "撥打簡訊提供的電話號碼",
+                    "直接忽略或刪除"
+                ],
+                correct: 3,
+                explanation: "這類中獎簡訊通常是詐騙，最安全的做法就是直接忽略或刪除。"
+            },
+            {
+                question: "網購平台賣家要求使用LINE私下交易，應該？",
+                options: [
+                    "同意私下交易以節省費用",
+                    "堅持使用平台正常付款機制",
+                    "先付一半訂金試試",
+                    "用現金交易比較安全"
+                ],
+                correct: 1,
+                explanation: "應堅持使用平台的正常付款機制，這樣才有交易保障。"
+            },
+            {
+                question: "如何保護自己的網路帳號安全？",
+                options: [
+                    "使用簡單好記的密碼",
+                    "所有帳號都用相同密碼",
+                    "開啟雙重認證機制",
+                    "將密碼告訴親友"
+                ],
+                correct: 2,
+                explanation: "開啟雙重認證是保護帳號的重要措施，即使密碼外洩也有第二道防線。"
+            },
+            {
+                question: "收到疑似詐騙電話或簡訊，應該撥打哪個號碼報案？",
+                options: [
+                    "165",
+                    "110",
+                    "119",
+                    "104"
+                ],
+                correct: 0,
+                explanation: "165是反詐騙專線，遇到疑似詐騙情況請立即撥打165諮詢。"
+            },
+            {
+                question: "下列哪個不是釣魚網站的特徵？",
+                options: [
+                    "網址有明顯錯字",
+                    "有SSL安全認證",
+                    "要求立即更新個人資料",
+                    "介面排版混亂"
+                ],
+                correct: 1,
+                explanation: "SSL安全認證（https）是正常網站的基本要求，但這不能作為唯一判斷依據。"
+            },
+            {
+                question: "接到自稱是警察的電話，說你涉及洗錢案件，要如何處理？",
+                options: [
+                    "配合對方指示操作",
+                    "提供帳戶資訊協助調查",
+                    "立即掛斷，親自到警局確認",
+                    "將電話轉接給家人"
+                ],
+                correct: 2,
+                explanation: "警察不會用電話通知案件，如有疑慮請親自到警局確認。"
+            },
+            {
+                question: "網購商品時，下列哪種付款方式最安全？",
+                options: [
+                    "私下轉帳",
+                    "貨到付款",
+                    "平台提供的付款機制",
+                    "現金交易"
+                ],
+                correct: 2,
+                explanation: "使用平台提供的付款機制最安全，有交易保障機制。"
+            },
+            {
+                question: "如何判斷電子郵件是否為釣魚郵件？",
+                options: [
+                    "只要寄件者名稱正確就是真的",
+                    "檢查寄件者完整郵件地址",
+                    "看內容是否急迫",
+                    "有公司標誌就是真的"
+                ],
+                correct: 1,
+                explanation: "要仔細檢查寄件者的完整郵件地址，不要只看顯示名稱。"
+            },
+            {
+                question: "遇到可疑的網路交易，最好的處理方式是？",
+                options: [
+                    "先嘗試小額交易",
+                    "詢問網友評價",
+                    "停止交易並通報165",
+                    "要求對方提供證明"
+                ],
+                correct: 2,
+                explanation: "發現可疑交易，最好立即停止並撥打165諮詢。"
+            },
+            {
+                question: "ATM操作時，下列哪種行為最危險？",
+                options: [
+                    "確認周圍環境安全",
+                    "依照電話指示操作",
+                    "快速完成交易",
+                    "遮擋密碼輸入"
+                ],
+                correct: 1,
+                explanation: "永遠不要依照電話指示操作ATM，這是常見的詐騙手法。"
+            },
+            {
+                question: "收到親友傳來的借錢訊息，應該？",
+                options: [
+                    "立即轉帳幫忙",
+                    "用其他方式聯絡確認",
+                    "詢問更多細節",
+                    "轉傳給其他親友"
+                ],
+                correct: 1,
+                explanation: "應該用電話等其他方式直接聯絡對方確認，因為帳號可能被盜用。"
+            },
+            {
+                question: "下列哪個不是安全的密碼設定原則？",
+                options: [
+                    "使用特殊符號",
+                    "混合數字和字母",
+                    "使用生日作密碼",
+                    "定期更換密碼"
+                ],
+                correct: 2,
+                explanation: "使用生日等個人資料作密碼很容易被猜中，應避免使用。"
+            },
+            {
+                question: "發現已經被詐騙了，應該優先做什麼？",
+                options: [
+                    "立即報警並凍結帳戶",
+                    "通知親友集資",
+                    "繼續與歹徒周旋",
+                    "在網路上公開討論"
+                ],
+                correct: 0,
+                explanation: "應立即報警並請銀行凍結帳戶，以減少損失。"
+            }
+        ];
 
-    <link rel="stylesheet" type="text/css" href="style.css">
+        let currentQuestion = 0;
+        let score = 0;
+        let answered = false;
 
-    <script src="libraries/p5.min.js"></script>
-    <script src="libraries/p5.sound.min.js"></script>
-  </head>
+        function showQuestion() {
+            const question = questions[currentQuestion];
+            document.getElementById('question').textContent = question.question;
+            
+            const optionsHtml = question.options.map((option, index) => 
+                `<div class="option" onclick="selectOption(${index})">${option}</div>`
+            ).join('');
+            
+            document.getElementById('options').innerHTML = optionsHtml;
+            document.getElementById('feedback').style.display = 'none';
+            document.getElementById('next-btn').style.display = 'none';
+            
+            // 更新進度條
+            const progress = ((currentQuestion) / questions.length) * 100;
+            document.getElementById('progress').style.width = `${progress}%`;
+            
+            answered = false;
+        }
 
-  <body>
-    <script src="sketch.js"></script>
-  </body>
+        function selectOption(index) {
+            if (answered) return;
+            
+            answered = true;
+            const question = questions[currentQuestion];
+            const options = document.querySelectorAll('.option');
+            
+            options[index].classList.add(index === question.correct ? 'correct' : 'incorrect');
+            options[question.correct].classList.add('correct');
+            
+            const feedback = document.getElementById('feedback');
+            feedback.textContent = question.explanation;
+            feedback.style.display = 'block';
+            feedback.style.backgroundColor = index === question.correct ? '#d4edda' : '#f8d7da';
+            feedback.style.color = index === question.correct ? '#155724' : '#721c24';
+            
+            if (index === question.correct) {
+                score += 100;
+                document.getElementById('score').textContent = score;
+            }
+            
+            document.getElementById('next-btn').style.display = 'block';
+        }
+
+        function nextQuestion() {
+            currentQuestion++;
+            if (currentQuestion < questions.length) {
+                showQuestion();
+            } else {
+                showFinalScore();
+            }
+        }
+
+        function showFinalScore() {
+            const percentage = (score / (questions.length * 100)) * 100;
+            const container = document.querySelector('.quiz-container');
+            container.innerHTML = `
+                <h1>測驗完成！</h1>
+                <div class="score">最終得分: ${score} 分</div>
+                <div class="question">
+                    正確率: ${percentage}%<br><br>
+                    ${percentage >= 80 ? '太棒了！你是反詐騙高手！' : 
+                      percentage >= 60 ? '不錯喔！還可以再加強！' : 
+                      '要多注意反詐騙知識喔！'}
+                </div>
+                <button onclick="location.reload()">重新測驗</button>
+            `;
+        }
+
+        showQuestion();
+    </script>
+</body>
 </html>
